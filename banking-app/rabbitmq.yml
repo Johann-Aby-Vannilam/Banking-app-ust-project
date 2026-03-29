@@ -27,6 +27,7 @@ spec:
         startupProbe:
           tcpSocket:
             port: 5672
+          initialDelaySeconds: 10
           failureThreshold: 30
           periodSeconds: 5
         readinessProbe:
