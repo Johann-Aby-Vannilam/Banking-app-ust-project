@@ -23,6 +23,7 @@ spec:
               - image: "mysql:*"
               - image: "redis:*"
               - image: "rabbitmq:*"
+              - image: "registry.k8s.io/sig-storage/*"
 
           - list: "request.object.spec.initContainers"
             anyPattern:
@@ -31,3 +32,4 @@ spec:
               - image: "mysql:*"
               - image: "redis:*"
               - image: "rabbitmq:*"
+              - image: "registry.k8s.io/sig-storage/*"

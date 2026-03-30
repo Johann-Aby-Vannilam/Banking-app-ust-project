@@ -20,7 +20,7 @@ metadata:
   name: user-service-config
   namespace: banking-app
 data:
-  DB_HOST: mysql
+  DB_HOST: mysql-0.mysql.banking-app.svc.cluster.local
   DB_USER: root
   DB_NAME: banking_db
   REDIS_HOST: redis

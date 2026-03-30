@@ -1,0 +1,115 @@
+# =============================================================
+# NFS Subdir External Provisioner
+# Namespace: kube-system  (avoids Kyverno banking-app policies)
+#
+# BEFORE APPLYING:
+#   Replace <NFS_SERVER_IP> with your NFS EC2 private IP
+#   Replace /srv/nfs/k8s  with your NFS export path (if different)
+# =============================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nfs-subdir-external-provisioner
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nfs-subdir-external-provisioner-runner
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: run-nfs-subdir-external-provisioner
+subjects:
+- kind: ServiceAccount
+  name: nfs-subdir-external-provisioner
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: nfs-subdir-external-provisioner-runner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: leader-locking-nfs-subdir-external-provisioner
+  namespace: kube-system
+rules:
+- apiGroups: [""]
+  resources: ["endpoints"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: leader-locking-nfs-subdir-external-provisioner
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: nfs-subdir-external-provisioner
+  namespace: kube-system
+roleRef:
+  kind: Role
+  name: leader-locking-nfs-subdir-external-provisioner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-subdir-external-provisioner
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-subdir-external-provisioner
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nfs-subdir-external-provisioner
+    spec:
+      serviceAccountName: nfs-subdir-external-provisioner
+      containers:
+      - name: nfs-subdir-external-provisioner
+        image: registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
+        volumeMounts:
+        - name: nfs-client-root
+          mountPath: /persistentvolumes
+        env:
+        - name: PROVISIONER_NAME
+          value: k8s-sigs.io/nfs-subdir-external-provisioner
+        - name: NFS_SERVER
+          value: "<NFS_SERVER_IP>"          # ← Replace with your NFS EC2 private IP
+        - name: NFS_PATH
+          value: "/srv/nfs/k8s"             # ← Replace if your path differs
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+      volumes:
+      - name: nfs-client-root
+        nfs:
+          server: "<NFS_SERVER_IP>"         # ← Replace with your NFS EC2 private IP
+          path: "/srv/nfs/k8s"              # ← Replace if your path differs

@@ -4,7 +4,7 @@ metadata:
   name: account-secret
   namespace: banking-app
 stringData:
-  DB_HOST: "mysql"
+  DB_HOST: "mysql-0.mysql.banking-app.svc.cluster.local"
   DB_USER: "root"
   DB_PASS: "rootpassword"
   DB_NAME: "banking_db"
