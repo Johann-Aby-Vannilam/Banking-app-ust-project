@@ -91,9 +91,9 @@ spec:
               - mysqladmin
               - ping
               - -h
-              - localhost
-            initialDelaySeconds: 30
-            failureThreshold: 30
+              - 127.0.0.1
+            initialDelaySeconds: 60
+            failureThreshold: 40
             periodSeconds: 5
             timeoutSeconds: 5
           readinessProbe:
@@ -102,7 +102,7 @@ spec:
               - mysqladmin
               - ping
               - -h
-              - localhost
+              - 127.0.0.1
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
@@ -113,10 +113,10 @@ spec:
               - mysqladmin
               - ping
               - -h
-              - localhost
+              - 127.0.0.1
             initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 5
             timeoutSeconds: 5
       volumes:
         - name: init-script
