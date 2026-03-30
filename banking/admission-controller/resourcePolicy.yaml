@@ -24,10 +24,10 @@ spec:
                   - (name): "{{ element.name }}"
                     resources:
                       requests:
-                        cpu: "250m"
-                        memory: "256Mi"
+                        cpu: "40m"
+                        memory: "32Mi"
                       limits:
-                        cpu: "3"
+                        cpu: "50m"
                         memory: "2Gi"
 
   

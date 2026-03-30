@@ -35,6 +35,7 @@ spec:
           initialDelaySeconds: 5
           failureThreshold: 30
           periodSeconds: 5
+          timeoutSeconds: 5
         readinessProbe:
           exec:
             command:
@@ -43,6 +44,7 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           failureThreshold: 3
+          timeoutSeconds: 5
         livenessProbe:
           exec:
             command:
@@ -51,6 +53,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           failureThreshold: 3
+          timeoutSeconds: 5
 
         volumeMounts:
         - name: redis-data
