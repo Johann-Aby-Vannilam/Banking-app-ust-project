@@ -171,7 +171,10 @@ spec:
                 # Wait for own MySQL to accept connections (max 240s)
                 DEADLINE=$(( $(date +%s) + 240 ))
                 until mysqladmin ping -h 127.0.0.1 --silent 2>/dev/null; do
-                  [[ $(date +%s) -gt $DEADLINE ]] && { echo "Timed out waiting for local MySQL"; exit 1; }
+                  if [[ $(date +%s) -gt $DEADLINE ]]; then
+                    echo "Timed out waiting for local MySQL"
+                    exit 1
+                  fi
                   sleep 3
                 done
 
@@ -179,7 +182,10 @@ spec:
                 DEADLINE=$(( $(date +%s) + 300 ))
                 until mysql -h mysql-0.mysql.banking-app.svc.cluster.local \
                   -u root -p"${MYSQL_ROOT_PASSWORD}" -e "SELECT 1" 2>/dev/null; do
-                  [[ $(date +%s) -gt $DEADLINE ]] && { echo "Timed out waiting for primary"; exit 1; }
+                  if [[ $(date +%s) -gt $DEADLINE ]]; then
+                    echo "Timed out waiting for primary"
+                    exit 1
+                  fi
                   echo "Waiting for primary mysql-0..."
                   sleep 5
                 done
