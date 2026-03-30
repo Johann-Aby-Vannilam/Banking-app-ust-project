@@ -112,7 +112,7 @@ spec:
         - |
           set -ex
           # Extract ordinal from hostname (mysql-0, mysql-1, mysql-2)
-          [[ $(hostname) =~ -([0-9]+)$ ]] || exit 1
+          [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
           ordinal=${BASH_REMATCH[1]}
 
           mkdir -p /mnt/conf.d
@@ -163,7 +163,7 @@ spec:
               - "-c"
               - |
                 set -ex
-                [[ $(hostname) =~ -([0-9]+)$ ]] || exit 1
+                [[ $HOSTNAME =~ -([0-9]+)$ ]] || exit 1
                 ordinal=${BASH_REMATCH[1]}
                 # Primary pod does nothing
                 [[ $ordinal -eq 0 ]] && exit 0
@@ -255,7 +255,7 @@ spec:
       storageClassName: nfs-client
       resources:
         requests:
-          storage: 5Gi
+          storage: 1Gi
 ---
 # Headless service – stable DNS for each pod (mysql-0.mysql, mysql-1.mysql, mysql-2.mysql)
 apiVersion: v1
