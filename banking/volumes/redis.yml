@@ -46,10 +46,8 @@ spec:
           failureThreshold: 3
           timeoutSeconds: 5
         livenessProbe:
-          exec:
-            command:
-            - redis-cli
-            - ping
+          tcpSocket:
+            port: 6379
           initialDelaySeconds: 30
           periodSeconds: 10
           failureThreshold: 3
