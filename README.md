@@ -160,3 +160,49 @@ nfs-client
  
 ---
 # k8s-banking-application
+
+#🚀 MySQL StatefulSet + Replication Setup (README Section)
+📦 1. Deploy MySQL Cluster
+kubectl apply -f mysql.yml
+🔄 2. Wait for Pods to be Ready
+kubectl get pods -n banking-app -w
+
+Wait until:
+
+mysql-0   1/1 Running
+mysql-1   1/1 Running
+mysql-2   1/1 Running
+
+can skip step 3
+
+#🔑 3. Get MySQL Root Password
+kubectl get secret mysql-secret -n banking-app -o jsonpath="{.data.MYSQL_ROOT_PASSWORD}" | base64 --decode
+#🧩 4. Configure Replication (Run on Replicas)
+👉 Setup for mysql-1
+kubectl exec -it mysql-1 -n banking-app -- mysql -uroot -p
+CHANGE MASTER TO
+  MASTER_HOST='mysql-0.mysql',
+  MASTER_USER='replicator',
+  MASTER_PASSWORD='replicationpassword',
+  MASTER_AUTO_POSITION=1;
+
+START SLAVE;
+👉 Setup for mysql-2
+kubectl exec -it mysql-2 -n banking-app -- mysql -uroot -p
+CHANGE MASTER TO
+  MASTER_HOST='mysql-0.mysql',
+  MASTER_USER='replicator',
+  MASTER_PASSWORD='replicationpassword',
+  MASTER_AUTO_POSITION=1;
+
+START SLAVE;
+#✅ 5. Verify Replication (Replica Side)
+kubectl exec -it mysql-1 -n banking-app -- mysql -uroot -p -e "SHOW SLAVE STATUS\G"
+kubectl exec -it mysql-2 -n banking-app -- mysql -uroot -p -e "SHOW SLAVE STATUS\G"
+Expected:
+Slave_IO_Running: Yes
+Slave_SQL_Running: Yes
+#✅ 6. Verify from Master
+kubectl exec -it mysql-0 -n banking-app -- mysql -uroot -p -e "SHOW PROCESSLIST;"
+Expected:
+Binlog Dump GTID (2 entries)
