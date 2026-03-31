@@ -161,25 +161,53 @@ nfs-client
 ---
 # k8s-banking-application
 
-#🚀 MySQL StatefulSet + Replication Setup (README Section)
-📦 1. Deploy MySQL Cluster
+Good — you want something **clean, copy-paste ready for README**, not explanation-heavy. I’ll give you a **production-style command flow** your teammates can follow exactly.
+
+---
+
+# 🚀 **MySQL StatefulSet + Replication Setup (README Section)**
+
+## 📦 1. Deploy MySQL Cluster
+
+```bash
 kubectl apply -f mysql.yml
-🔄 2. Wait for Pods to be Ready
+```
+
+---
+
+## 🔄 2. Wait for Pods to be Ready
+
+```bash
 kubectl get pods -n banking-app -w
+```
 
 Wait until:
 
+```text
 mysql-0   1/1 Running
 mysql-1   1/1 Running
 mysql-2   1/1 Running
+```
 
+---
 can skip step 3
+## 🔑 3. Get MySQL Root Password
 
-#🔑 3. Get MySQL Root Password
+```bash
 kubectl get secret mysql-secret -n banking-app -o jsonpath="{.data.MYSQL_ROOT_PASSWORD}" | base64 --decode
-#🧩 4. Configure Replication (Run on Replicas)
-👉 Setup for mysql-1
+```
+
+---
+
+## 🧩 4. Configure Replication (Run on Replicas)
+
+### 👉 Setup for mysql-1
+
+```bash
 kubectl exec -it mysql-1 -n banking-app -- mysql -uroot -p
+```
+
+```sql
 CHANGE MASTER TO
   MASTER_HOST='mysql-0.mysql',
   MASTER_USER='replicator',
@@ -187,8 +215,17 @@ CHANGE MASTER TO
   MASTER_AUTO_POSITION=1;
 
 START SLAVE;
-👉 Setup for mysql-2
+```
+
+---
+
+### 👉 Setup for mysql-2
+
+```bash
 kubectl exec -it mysql-2 -n banking-app -- mysql -uroot -p
+```
+
+```sql
 CHANGE MASTER TO
   MASTER_HOST='mysql-0.mysql',
   MASTER_USER='replicator',
@@ -196,13 +233,60 @@ CHANGE MASTER TO
   MASTER_AUTO_POSITION=1;
 
 START SLAVE;
-#✅ 5. Verify Replication (Replica Side)
+```
+
+---
+
+## ✅ 5. Verify Replication (Replica Side)
+
+```bash
 kubectl exec -it mysql-1 -n banking-app -- mysql -uroot -p -e "SHOW SLAVE STATUS\G"
+```
+
+```bash
 kubectl exec -it mysql-2 -n banking-app -- mysql -uroot -p -e "SHOW SLAVE STATUS\G"
-Expected:
+```
+
+### Expected:
+
+```text
 Slave_IO_Running: Yes
 Slave_SQL_Running: Yes
-#✅ 6. Verify from Master
+```
+
+---
+
+## ✅ 6. Verify from Master
+
+```bash
 kubectl exec -it mysql-0 -n banking-app -- mysql -uroot -p -e "SHOW PROCESSLIST;"
-Expected:
+```
+
+### Expected:
+
+```text
 Binlog Dump GTID (2 entries)
+```
+
+---
+till here is necessary
+## 🧪 7. Test Replication
+
+### Insert into Master
+
+```bash
+kubectl exec -it mysql-0 -n banking-app -- mysql -uroot -p -e "
+USE banking_db;
+INSERT INTO users (username, password, email)
+VALUES ('test_user','pass','test@mail.com');"
+```
+
+---
+
+### Check in Replica
+
+```bash
+kubectl exec -it mysql-1 -n banking-app -- mysql -uroot -p -e "SELECT * FROM banking_db.users;"
+```
+
+---
